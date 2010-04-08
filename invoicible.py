@@ -40,10 +40,6 @@ class Client(oauth.OAuthClient):
         self.connection = httplib.HTTPSConnection(self.invoicible_domain)
         self.protocol = 'https'
 
-        #FIXME: DELETE THIS
-        self.connection = httplib.HTTPConnection(self.invoicible_domain)
-        self.protocol = 'http'
-
         self.signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
         self.json_encoder = simplejson.JSONEncoder()
 

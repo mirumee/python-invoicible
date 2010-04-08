@@ -11,12 +11,12 @@ import webbrowser
 import invoicible
 
 # key and secret granted by the service provider for this consumer application
-CONSUMER_KEY = 'YSqAxM9c7KfuAQ2zUm'
-CONSUMER_SECRET = 's2LCa5t7TaQTFxQbrYgLMgRPVJdsu3Vt'
+CONSUMER_KEY = ''
+CONSUMER_SECRET = ''
 
 # access token for this consumer application which allows access to user resources
-ACCESS_TOKEN_KEY = 'e7VPJRSpA4HdEfGZf5'
-ACCESS_TOKEN_SECRET = 'ZF8WRxBhJ9jAm9bUATwUCvrLTJYG8vNF'
+ACCESS_TOKEN_KEY = ''
+ACCESS_TOKEN_SECRET = ''
 
 def ask(question):
     while True:
