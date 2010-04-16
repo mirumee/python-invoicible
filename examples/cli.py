@@ -18,10 +18,12 @@ CONSUMER_SECRET = ''
 ACCESS_TOKEN_KEY = ''
 ACCESS_TOKEN_SECRET = ''
 
+COMPANY_DOMAIN = ''
+
 def ask(question):
     while True:
         result = raw_input(question)
-        if result.lower() in ('y', 'yes'):
+        if result.lower() in ('y', 'yes', ''):
             return True
         elif result.lower() in ('n', 'no'):
             return False
@@ -29,7 +31,7 @@ def ask(question):
 class InvoicibleOAuthHelper(oauth.OAuthClient):
     """
     This is helper for oauth autorization, if you are going to create your own client
-    you should check the logic of autorize method.
+    you should check the logic of authorise method.
     """
     request_token_path = '/aplikacje/request/token/'
     access_token_path = '/aplikacje/access/token/'
@@ -42,9 +44,9 @@ class InvoicibleOAuthHelper(oauth.OAuthClient):
 
         self.signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
 
-    def authorize(self):
+    def authorise(self):
         request_token = self.fetch_request_token()
-        verifier = self.authorize_token(request_token)
+        verifier = self.authorise_token(request_token)
         access_token = self.fetch_access_token(verifier)
         return access_token
 
@@ -68,7 +70,7 @@ class InvoicibleOAuthHelper(oauth.OAuthClient):
         verifier = raw_input('Copy verifier which you should see on page after autorization:')
         return verifier
 
-    def authorize_token(self, request_token):
+    def authorise_token(self, request_token):
         oauth_request = oauth.OAuthRequest.from_token_and_callback(
             token=request_token,
             http_url=urlparse.urlunparse(("http", self.company_domain, self.authorization_path, None, None, None))
@@ -107,7 +109,7 @@ class SimpleClientCommandLine(cmd.Cmd):
 
     def do_help(self, *args):
         print "list"
-        print "create"
+        #print "create"
         print "delete"
         print "quit"
 
@@ -146,8 +148,9 @@ class SimpleClientCommandLine(cmd.Cmd):
         return 1
     do_quit = do_EOF
 
-if __name__ == "__main__":
-    if not CONSUMER_KEY or not CONSUMER_SECRET:
+def run_example(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET,
+        access_token_key=ACCESS_TOKEN_KEY, access_token_secret=ACCESS_TOKEN_SECRET, company_domain=COMPANY_DOMAIN):
+    if not consumer_key or not consumer_secret:
         print """
 You have not provided application (oauth consumer) keys. Please search invoicible api
 documentation for testing keys (or generate new ones for your application in invoivible service)
@@ -155,31 +158,39 @@ and put those values into this file (%s) as CONSUMER_KEY and CONSUMER_SECRET.
 """ % (__file__)
         sys.exit(1)
 
-    if not ACCESS_TOKEN_KEY and not ACCESS_TOKEN_SECRET:
+    if not company_domain:
+        company_domain = raw_input("Please provide company domain (and put it to this file as COMPANY_DOMAIN to prevent this step in future) which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
+
+    if not access_token_key and not access_token_secret:
         print """
 You have not provided oauth access token which allows your application access given user resources.
 If you have already those keys generated please put them into this file (%s) as ACCESS_TOKEN_KEY and
 ACCESS_TOKEN_SECRET if not this application will help you generate those keys.
 """ % (__file__)
-        if ask("Do you want to generate access token ([y]/n)?"):
+        if not ask("Do you want to generate access token ([y]/n)?"):
             sys.exit(1)
 
-        #company_domain = raw_input("Please provide invoicible domain of company which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
-        company_domain = 'cos.localhost:8000'
-        oauth_helper = InvoicibleOAuthHelper(CONSUMER_KEY, CONSUMER_SECRET, company_domain)
+
+        oauth_helper = InvoicibleOAuthHelper(consumer_key, consumer_secret, company_domain)
         access_token = oauth_helper.authorize()
-        ACCESS_TOKEN_KEY, ACCESS_TOKEN_SECRET = access_token.key, access_token.secret
+        access_token_key, access_token_secret = access_token.key, access_token.secret
         print """
 Please copy access token key: %s and access token secret: %s as ACCESS_TOKEN_KEY and ACCESS_TOKEN_SECRET
 into this file (%s) so next time you will skip application autorization step.
-""" % (ACCESS_TOKEN_KEY, ACCESS_TOKEN_SECRET, __file__)
+""" % (access_token_key, access_token_secret, __file__)
+
+    if not company_domain:
+        company_domain = raw_input("Please provide company domain (and put it to this file as COMPANY_DOMAIN to prevent this step in future) which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
 
     invoicible_client = invoicible.Client(
-        CONSUMER_KEY,
-        CONSUMER_SECRET,
-        ACCESS_TOKEN_KEY,
-        ACCESS_TOKEN_SECRET,
-        invoicible_domain = 'localhost:8000',
+        consumer_key,
+        consumer_secret,
+        access_token_key,
+        access_token_secret,
+        invoicible_domain = company_domain,
     )
     command_line = SimpleClientCommandLine(invoicible_client)
     command_line.cmdloop()
+
+if __name__ == "__main__":
+    run_example()

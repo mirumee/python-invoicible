@@ -59,10 +59,9 @@ class Client(oauth.OAuthClient):
             headers=oauth_request.to_header()
         )
         response = self.connection.getresponse()
+        json = response.read()
         if response.status != 200:
             raise DoesNotExists()
-        json = response.read()
-        #print json
         return simplejson.loads(json)
 
     def create_resource(self, path, data):
@@ -279,9 +278,6 @@ class InvoicibleApiObjectManager(object):
         resource = self._client.create_resource(self._resources_uri, kwargs)
         return self.api_klass(self._client, json=resource)
 
-    def get(self, resource_uri):
-        resource = client
-
 class Customer(InvoicibleApiObject):
     _resources_uri = '/api/1.0/customers/'
     _fields = {
@@ -372,7 +368,6 @@ class Estimate(InvoicibleApiObject):
         'summary': unicode,
         'status': unicode,
     }
-
     customer = InvoicibleApiObjectField('customer_uri', Customer)
     comments = InvoicibleApiManagerField('comments_uri', CommentManager)
 
