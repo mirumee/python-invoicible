@@ -12,7 +12,7 @@ import invoicible
 
 # key and secret granted by the service provider for this consumer application
 CONSUMER_KEY = ''
-CONSUMER_SECRET = ''
+CONSUMER_SECRET_KEY = ''
 
 # access token for this consumer application which allows access to user resources
 ACCESS_TOKEN_KEY = ''
@@ -31,29 +31,29 @@ def ask(question):
 class InvoicibleOAuthHelper(oauth.OAuthClient):
     """
     This is helper for oauth autorization, if you are going to create your own client
-    you should check the logic of authorise method.
+    you should check the logic of authorize method.
     """
-    request_token_path = '/aplikacje/request/token/'
-    access_token_path = '/aplikacje/access/token/'
-    authorization_path = '/aplikacje/autoryzacja/'
+    request_token_path = '/oauth/request/token/'
+    access_token_path = '/oauth/access/token/'
+    authorization_path = '/oauth/autoryzacja/'
 
     def __init__(self, consumer_key, consumer_secret, company_domain):
         self.company_domain = company_domain
-        self.connection = httplib.HTTPConnection(self.company_domain)
+        self.connection = httplib.HTTPSConnection(self.company_domain)
         self.consumer = oauth.OAuthConsumer(consumer_key, consumer_secret)
 
         self.signature_method_hmac_sha1 = oauth.OAuthSignatureMethod_HMAC_SHA1()
 
-    def authorise(self):
+    def authorize(self):
         request_token = self.fetch_request_token()
-        verifier = self.authorise_token(request_token)
+        verifier = self.authorize_token(request_token)
         access_token = self.fetch_access_token(verifier)
         return access_token
 
     def fetch_request_token(self):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
-            http_url=urlparse.urlunparse(("http", self.company_domain, self.request_token_path, None, None, None))
+            http_url=urlparse.urlunparse(("https", self.company_domain, self.request_token_path, None, None, None))
         )
         oauth_request.sign_request(self.signature_method_hmac_sha1, self.consumer, None)
         self.connection.request(
@@ -70,10 +70,10 @@ class InvoicibleOAuthHelper(oauth.OAuthClient):
         verifier = raw_input('Copy verifier which you should see on page after autorization:')
         return verifier
 
-    def authorise_token(self, request_token):
+    def authorize_token(self, request_token):
         oauth_request = oauth.OAuthRequest.from_token_and_callback(
             token=request_token,
-            http_url=urlparse.urlunparse(("http", self.company_domain, self.authorization_path, None, None, None))
+            http_url=urlparse.urlunparse(("https", self.company_domain, self.authorization_path, None, None, None))
         )
         self._verifier = self.fetch_verifier(oauth_request.to_url())
         return self._verifier
@@ -83,7 +83,7 @@ class InvoicibleOAuthHelper(oauth.OAuthClient):
         oauth_request = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             token=self._request_token,
-            http_url=urlparse.urlunparse(("http", self.company_domain, self.access_token_path, None, None, None))
+            http_url=urlparse.urlunparse(("https", self.company_domain, self.access_token_path, None, None, None))
         )
         oauth_request.sign_request(self.signature_method_hmac_sha1, self.consumer, self._request_token)
         self.connection.request(oauth_request.http_method, self.access_token_path, headers=oauth_request.to_header())
@@ -148,13 +148,13 @@ class SimpleClientCommandLine(cmd.Cmd):
         return 1
     do_quit = do_EOF
 
-def run_example(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET,
+def run_example(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET_KEY,
         access_token_key=ACCESS_TOKEN_KEY, access_token_secret=ACCESS_TOKEN_SECRET, company_domain=COMPANY_DOMAIN):
     if not consumer_key or not consumer_secret:
         print """
 You have not provided application (oauth consumer) keys. Please search invoicible api
 documentation for testing keys (or generate new ones for your application in invoivible service)
-and put those values into this file (%s) as CONSUMER_KEY and CONSUMER_SECRET.
+and put those values into this file (%s) as CONSUMER_KEY and CONSUMER_SECRET_KEY.
 """ % (__file__)
         sys.exit(1)
 
