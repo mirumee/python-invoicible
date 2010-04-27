@@ -152,20 +152,20 @@ def run_example(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET_KEY,
         access_token_key=ACCESS_TOKEN_KEY, access_token_secret=ACCESS_TOKEN_SECRET, company_domain=COMPANY_DOMAIN):
     if not consumer_key or not consumer_secret:
         print """
-You have not provided application (oauth consumer) keys. Please search invoicible api
+You have not provided application (oauth consumer) keys. Please search invoicible api (centrumfaktur.pl/api)
 documentation for testing keys (or generate new ones for your application in invoivible service)
 and put those values into this file (%s) as CONSUMER_KEY and CONSUMER_SECRET_KEY.
 """ % (__file__)
         sys.exit(1)
 
     if not company_domain:
-        company_domain = raw_input("Please provide company domain (and put it to this file as COMPANY_DOMAIN to prevent this step in future) which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
+        company_domain = raw_input("Please provide company domain (and put it to this file as COMPANY_DOMAIN to prevent this step in the future) which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
 
     if not access_token_key and not access_token_secret:
         print """
 You have not provided oauth access token which allows your application access given user resources.
 If you have already those keys generated please put them into this file (%s) as ACCESS_TOKEN_KEY and
-ACCESS_TOKEN_SECRET if not this application will help you generate those keys.
+ACCESS_TOKEN_SECRET.
 """ % (__file__)
         if not ask("Do you want to generate access token ([y]/n)?"):
             sys.exit(1)
@@ -180,7 +180,7 @@ into this file (%s) so next time you will skip application autorization step.
 """ % (access_token_key, access_token_secret, __file__)
 
     if not company_domain:
-        company_domain = raw_input("Please provide company domain (and put it to this file as COMPANY_DOMAIN to prevent this step in future) which resources you want to access (for example: mycompany.centrumfaktur.pl): ")
+        company_domain = raw_input("Please provide company domain (for example: mycompany.centrumfaktur.pl - you can put it to this file as COMPANY_DOMAIN):")
 
     invoicible_client = invoicible.Client(
         consumer_key,
