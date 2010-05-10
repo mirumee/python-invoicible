@@ -125,7 +125,7 @@ class Client(oauth.OAuthClient):
         response = self.connection.getresponse()
         return response.status == DELETED
 
-class InvoicibleApiObjectField(object):
+class InvoicibleApiFieldDescriptor(object):
     def __init__(self, prepopulate_from, klass):
         self.prepopulate_from = prepopulate_from
         self.klass = klass
@@ -145,7 +145,7 @@ class InvoicibleApiObjectField(object):
         setattr(api_object, self.prepopulate_from, value.resource_uri)
         api_object.__dict__[self.name] = value
 
-class InvoicibleApiManagerField(object):
+class InvoicibleApiManagerFieldDescriptor(object):
     def __init__(self, prepopulate_from, manager_klass):
         self.prepopulate_from = prepopulate_from
         self.manager_klass = manager_klass
@@ -266,10 +266,11 @@ class InvoicibleApiObjectManager(object):
             result.append(self.api_klass(self._client, json=resource))
         return result
 
-    def list(self, offset=0, limit=20):
+    def list(self, offset=0, limit=20, query=None):
         result = []
+        query = dict({'offset': offset, 'limit': limit}, **query) if query else {'offset': offset, 'limit': limit}
         resources = self._client.get_resources(self._resources_uri,
-            query={'offset': offset, 'limit': limit})
+                query=query)
         for resource in resources:
             result.append(self.api_klass(self._client, json=resource))
         return result
@@ -277,6 +278,16 @@ class InvoicibleApiObjectManager(object):
     def create(self, **kwargs):
         resource = self._client.create_resource(self._resources_uri, kwargs)
         return self.api_klass(self._client, json=resource)
+
+class DateSliceableApiObjectManager(InvoicibleApiObjectManager):
+    def list(self, *args, **kwargs):
+        start, end = kwargs.pop('start', None), kwargs.pop('end', None)
+        query = kwargs.setdefault('query', {})
+        if start:
+            query['start'] = start if isinstance(start, basestring) else start.strftime(DATE_FORMAT)
+        if end:
+            query['end'] = end if isinstance(end, basestring) else end.strftime(DATE_FORMAT)
+        return super(DateSliceableApiObjectManager, self).list(*args, **kwargs)
 
 class Customer(InvoicibleApiObject):
     _resources_uri = '/api/1.0/customers/'
@@ -352,10 +363,10 @@ class Invoice(InvoicibleApiObject):
         'status': unicode,
         'summary': unicode,
     }
-    customer = InvoicibleApiObjectField('customer_uri', Customer)
-    comments = InvoicibleApiManagerField('comments_uri', CommentManager)
+    customer = InvoicibleApiFieldDescriptor('customer_uri', Customer)
+    comments = InvoicibleApiManagerFieldDescriptor('comments_uri', CommentManager)
 
-class InvoiceManager(InvoicibleApiObjectManager):
+class InvoiceManager(DateSliceableApiObjectManager):
     api_klass = Invoice
 
 class Estimate(InvoicibleApiObject):
@@ -368,8 +379,8 @@ class Estimate(InvoicibleApiObject):
         'summary': unicode,
         'status': unicode,
     }
-    customer = InvoicibleApiObjectField('customer_uri', Customer)
-    comments = InvoicibleApiManagerField('comments_uri', CommentManager)
+    customer = InvoicibleApiFieldDescriptor('customer_uri', Customer)
+    comments = InvoicibleApiManagerFieldDescriptor('comments_uri', CommentManager)
 
-class EstimateManager(InvoicibleApiObjectManager):
+class EstimateManager(DateSliceableApiObjectManager):
     api_klass = Estimate
