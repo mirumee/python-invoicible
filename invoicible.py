@@ -281,12 +281,12 @@ class InvoicibleApiObjectManager(object):
 
 class DateSliceableApiObjectManager(InvoicibleApiObjectManager):
     def list(self, *args, **kwargs):
-        start, end = kwargs.pop('start', None), kwargs.pop('end', None)
+        date_from, date_to = kwargs.pop('date_from', None), kwargs.pop('date_to', None)
         query = kwargs.setdefault('query', {})
-        if start:
-            query['start'] = start if isinstance(start, basestring) else start.strftime(DATE_FORMAT)
-        if end:
-            query['end'] = end if isinstance(end, basestring) else end.strftime(DATE_FORMAT)
+        if date_from:
+            query['date_from'] = date_from if isinstance(date_from, basestring) else date_from.strftime(DATE_FORMAT)
+        if date_to:
+            query['date_to'] = date_to if isinstance(date_to, basestring) else date_to.strftime(DATE_FORMAT)
         return super(DateSliceableApiObjectManager, self).list(*args, **kwargs)
 
 class Customer(InvoicibleApiObject):
