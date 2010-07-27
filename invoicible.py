@@ -359,6 +359,8 @@ class Invoice(InvoicibleApiObject):
         'language': unicode,
         'paid_so_far': unicode,
         'payment_due': unicode,
+        'previous_advance_uri': unicode,
+        'corrected_invoice_uri': unicode,
         'resource_uri': unicode,
         'status': unicode,
         'summary': unicode,
